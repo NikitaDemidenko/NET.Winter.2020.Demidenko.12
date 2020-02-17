@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace GenericQueue
 {
@@ -34,6 +35,23 @@ namespace GenericQueue
             this.head = 0;
             this.tail = 0;
             this.size = 0;
+        }
+
+        /// <summary>Initializes a new instance of the <see cref="Queue{T}"/> class.</summary>
+        /// <param name="collection">Collection.</param>
+        /// <exception cref="System.ArgumentNullException">Thrown when collection is null.</exception>
+        public Queue(IEnumerable<T> collection)
+        {
+            if (collection == null)
+            {
+                throw new ArgumentNullException(nameof(collection));
+            }
+
+            var list = new List<T>(collection);
+            this.array = list.ToArray();
+            this.size = list.Count;
+            this.head = 0;
+            this.tail = this.size;
         }
 
         /// <summary>Gets the number of elements contained in the queue.</summary>
@@ -95,6 +113,30 @@ namespace GenericQueue
             }
 
             return this.array[this.head];
+        }
+
+        /// <summary>Determines whether queue contains the item.</summary>
+        /// <param name="item">The item.</param>
+        /// <returns>
+        ///   <c>true</c> if [contains] [the specified item]; otherwise, <c>false</c>.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown when item is null.</exception>
+        public bool Contains(T item)
+        {
+            if (item == null)
+            {
+                throw new ArgumentNullException(nameof(item));
+            }
+
+            return Array.IndexOf(this.array, item, this.head, this.size) >= 0;
+        }
+
+        /// <summary>Copies the queue elements to a new array.</summary>
+        /// <returns>A new array containing elements copied from the queue.</returns>
+        public T[] ToArray()
+        {
+            var outArray = new T[this.size];
+            Array.Copy(this.array, this.head, outArray, 0, this.size);
+            return outArray;
         }
 
         /// <summary>Gets the enumerator.</summary>

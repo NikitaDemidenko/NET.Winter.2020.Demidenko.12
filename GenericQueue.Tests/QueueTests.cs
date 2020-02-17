@@ -138,5 +138,26 @@ namespace GenericQueue.Tests
             Assert.That(pointQueue.Count == 2);
             Assert.That(noteQueue.Dequeue().Equals(new Note("first", "first in queue")) && noteQueue.Count == 2);
         }
+
+        [Order(10)]
+        [TestCase(ExpectedResult = new [] { 1, 2, 3})]
+        public int[] ToArrayTests()
+        {
+            return integerQueue.ToArray();
+        }
+
+        [Order(11)]
+        [Test]
+        public void ContainsTests()
+        {
+            Assert.That(integerQueue.Contains(2));
+            Assert.That(!integerQueue.Contains(10));
+            Assert.That(stringQueue.Contains("first"));
+            Assert.That(!stringQueue.Contains("fourth"));
+            Assert.That(pointQueue.Contains(new Point(2, 2)));
+            Assert.That(!pointQueue.Contains(new Point(5, 2)));
+            Assert.That(noteQueue.Contains(new Note("third", "third in queue")));
+            Assert.That(!noteQueue.Contains(new Note("fifth", "third in queue")));
+        }
     }
 }

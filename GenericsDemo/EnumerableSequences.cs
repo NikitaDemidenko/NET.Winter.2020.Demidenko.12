@@ -7,21 +7,17 @@ namespace GenericsDemo
     public static class EnumerableSequences
     {
         /// <summary>
-        /// Filters array by filter.
+        /// Filters collection by filter.
         /// </summary>
         /// <param name="source">The source.</param>
         /// <param name="predicate">The filter.</param>
-        /// <returns>Filtered array.</returns>
-        public static TSource[] FilterBy<TSource>(this TSource[] source, IPredicate<TSource> predicate)
+        /// <returns>Returns new filtered collection.</returns>
+        /// /// <exception cref="ArgumentNullException">Thrown when source or predicate is null.</exception>
+        public static IEnumerable<TSource> FilterBy<TSource>(this IEnumerable<TSource> source, IPredicate<TSource> predicate)
         {
             if (source is null)
             {
                 throw new ArgumentNullException($"{nameof(source)} cannot be null.");
-            }
-
-            if (source.Length is 0)
-            {
-                throw new ArgumentException($"{nameof(source)} cannot be empty.");
             }
 
             if (predicate is null)
@@ -29,37 +25,27 @@ namespace GenericsDemo
                 throw new ArgumentNullException($"{nameof(predicate)} cannot be null.");
             }
 
-            var filteredSource = new List<TSource>();
-
             foreach (var item in source)
             {
                 if (predicate.IsMatch(item))
                 {
-                    filteredSource.Add(item);
+                    yield return item;
                 }
             }
-
-            return filteredSource.ToArray();
         }
 
-        /// <summary>Transforms the specified array.</summary>
+        /// <summary>Transforms the specified collection.</summary>
         /// <typeparam name="TSource">The type of the source.</typeparam>
         /// <typeparam name="TResult">The type of the result.</typeparam>
-        /// <param name="source">Source array.</param>
+        /// <param name="source">Source collection.</param>
         /// <param name="transformer">Transformer.</param>
-        /// <returns>Returns transformed array.</returns>
+        /// <returns>Returns transformed collection.</returns>
         /// <exception cref="ArgumentNullException">Thrown when source or transformer is null.</exception>
-        /// <exception cref="ArgumentException">Thrown when source's length is zero.</exception>
-        public static TResult[] Transform<TSource, TResult>(this TSource[] source, ITransformer<TSource, TResult> transformer)
+        public static IEnumerable<TResult> Transform<TSource, TResult>(this IEnumerable<TSource> source, ITransformer<TSource, TResult> transformer)
         {
             if (source is null)
             {
                 throw new ArgumentNullException($"{nameof(source)} cannot be null.");
-            }
-
-            if (source.Length is 0)
-            {
-                throw new ArgumentException($"{nameof(source)} cannot be empty.");
             }
 
             if (transformer is null)
@@ -67,24 +53,19 @@ namespace GenericsDemo
                 throw new ArgumentNullException($"{nameof(transformer)} cannot be null.");
             }
 
-            TResult[] resultArray = new TResult[source.Length];
-            int i = 0;
-
             foreach (var item in source)
             {
-                resultArray[i++] = transformer.Transform(item);
+                yield return transformer.Transform(item);
             }
-
-            return resultArray;
         }
 
-        /// <summary>Orders array according to comparer.</summary>
+        /// <summary>Orders collection according to comparer.</summary>
         /// <typeparam name="TSource">The type of the source.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="comparer">The comparer.</param>
-        /// <returns>Returns new ordered array.</returns>
+        /// <returns>Returns new ordered collection.</returns>
         /// <exception cref="ArgumentNullException">Thrown when source or comparer is null.</exception>
-        public static TSource[] OrderAccordingTo<TSource>(this TSource[] source, Interfaces.IComparer<TSource> comparer)
+        public static IEnumerable<TSource> OrderAccordingTo<TSource>(this IEnumerable<TSource> source, Interfaces.IComparer<TSource> comparer)
         {
             if (source == null)
             {
@@ -96,64 +77,63 @@ namespace GenericsDemo
                 throw new ArgumentNullException(nameof(comparer));
             }
 
-            TSource[] result = new TSource[source.Length];
-            Array.Copy(source, result, source.Length);
-            for (int i = 0; i < source.Length - 1; i++)
+            var array = new List<TSource>(source).ToArray();
+            for (int i = 0; i < array.Length - 1; i++)
             {
-                for (int j = i + 1; j < source.Length; j++)
+                for (int j = i + 1; j < array.Length; j++)
                 {
-                    if (comparer.Compare(result[i], result[j]) > 0)
+                    if (comparer.Compare(array[i], array[j]) > 0)
                     {
-                        Swap(ref result[i], ref result[j]);
+                        Swap(ref array[i], ref array[j]);
                     }
                 }
             }
 
-            return result;
+            foreach (var item in array)
+            {
+                yield return item;
+            }
         }
 
-        /// <summary>Gets typed array.</summary>
+        /// <summary>Gets typed collection.</summary>
         /// <typeparam name="TResult">The type of the result.</typeparam>
         /// <param name="source">Source.</param>
         /// <returns>Returns new typed array.</returns>
         /// <exception cref="ArgumentNullException">Thrown when source is null.</exception>
-        public static TResult[] TypeOf<TResult>(this object[] source)
+        public static IEnumerable<TResult> TypeOf<TResult>(this IEnumerable<object> source)
         {
             if (source == null)
             {
                 throw new ArgumentNullException(nameof(source));
             }
 
-            TResult[] result = new TResult[source.Length];
-            for (int i = 0; i < source.Length; i++)
+            foreach (var item in source)
             {
-                result[i] = (TResult)source[i];
+                if (item.GetType() == typeof(TResult))
+                {
+                    yield return (TResult)item;
+                }
             }
-
-            return result;
         }
 
-        /// <summary>Reverses the specified array.</summary>
-        /// <typeparam name="T">Type of array.</typeparam>
+        /// <summary>Reverses the specified collection.</summary>
+        /// <typeparam name="T">Type of collection.</typeparam>
         /// <param name="source">Source.</param>
-        /// <returns>Returns new reversed array.</returns>
+        /// <returns>Returns new reversed collection.</returns>
         /// <exception cref="ArgumentNullException">Thrown when source is null.</exception>
-        public static T[] Reverse<T>(this T[] source)
+        public static IEnumerable<T> Reverse<T>(this IEnumerable<T> source)
         {
             if (source == null)
             {
                 throw new ArgumentNullException(nameof(source));
             }
 
-            T[] result = new T[source.Length];
-            Array.Copy(source, result, source.Length);
+            var array = new List<T>(source);
 
-            for (int i = 0, j = result.Length; i < j / 2; i++)
+            for (int i = array.Count - 1; i >= 0; i--)
             {
-                Swap(ref result[i], ref result[j - i - 1]);
+                yield return array[i];
             }
-
-            return result;
         }
 
         private static void Swap<T>(ref T left, ref T right)

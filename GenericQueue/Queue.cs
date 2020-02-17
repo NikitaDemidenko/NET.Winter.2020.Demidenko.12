@@ -10,6 +10,7 @@ namespace GenericQueue
         private int head;
         private int tail;
         private int size;
+        private int version;
         private int growthCoefficient = 5;
 
         /// <summary>Initializes a new instance of the <see cref="Queue{T}"/> class.</summary>
@@ -53,6 +54,7 @@ namespace GenericQueue
 
             this.array[this.tail++] = item;
             this.size++;
+            this.version++;
         }
 
         /// <summary>Removes and returns the object at the beginning of the queue.</summary>
@@ -68,6 +70,7 @@ namespace GenericQueue
             T output = this.array[this.head];
             this.array[this.head++] = default;
             this.size--;
+            this.version++;
             return output;
         }
 
@@ -78,6 +81,7 @@ namespace GenericQueue
             this.head = 0;
             this.tail = 0;
             this.size = 0;
+            this.version++;
         }
 
         /// <summary>Returns the object at the beginning of the queue without removing it.</summary>
@@ -104,6 +108,7 @@ namespace GenericQueue
         public struct Iterator
         {
             private readonly Queue<T> queue;
+            private readonly int version;
             private int currentIndex;
 
             /// <summary>Initializes a new instance of the <see cref="Iterator"/> struct.</summary>
@@ -113,6 +118,7 @@ namespace GenericQueue
             {
                 this.queue = queue ?? throw new ArgumentNullException(nameof(queue));
                 this.currentIndex = this.queue.head - 1;
+                this.version = queue.version;
             }
 
             /// <summary>Gets the element at the current position of the enumerator.</summary>
@@ -141,6 +147,11 @@ namespace GenericQueue
             /// <returns>true if the enumerator was successfully advanced to the next element; false if the enumerator has passed the end of the collection.</returns>
             public bool MoveNext()
             {
+                if (this.version != this.queue.version)
+                {
+                    throw new InvalidOperationException("Queue has been changed.");
+                }
+
                 return ++this.currentIndex < this.queue.tail;
             }
         }

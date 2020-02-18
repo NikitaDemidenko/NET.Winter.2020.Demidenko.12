@@ -8,12 +8,14 @@ namespace GenericQueue
     /// <typeparam name="T">Specifies the type of elements in the queue.</typeparam>
     public class Queue<T> : IEnumerable<T>, IEnumerable
     {
+        private const int DefaultCapacity = 4;
+        private const int MinimumGrow = 4;
+        private const int GrowFactor = 200;
         private T[] array;
         private int head;
         private int tail;
         private int size;
         private int version;
-        private int growthCoefficient = 5;
 
         /// <summary>Initializes a new instance of the <see cref="Queue{T}"/> class.</summary>
         public Queue()
@@ -48,11 +50,15 @@ namespace GenericQueue
                 throw new ArgumentNullException(nameof(collection));
             }
 
-            var list = new List<T>(collection);
-            this.array = list.ToArray();
-            this.size = list.Count;
-            this.head = 0;
-            this.tail = this.size;
+            this.array = new T[DefaultCapacity];
+            this.size = 0;
+            this.version = 0;
+
+            using var enumerator = collection.GetEnumerator();
+            while (enumerator.MoveNext())
+            {
+                this.Enqueue(enumerator.Current);
+            }
         }
 
         /// <summary>Gets the number of elements contained in the queue.</summary>
@@ -68,10 +74,17 @@ namespace GenericQueue
         {
             if (this.array.Length == this.size)
             {
-                Array.Resize(ref this.array, this.size + this.growthCoefficient);
+                int newCapacity = (int)((long)this.array.Length * (long)GrowFactor / 100);
+                if (newCapacity < this.array.Length + MinimumGrow)
+                {
+                    newCapacity = this.array.Length + MinimumGrow;
+                }
+
+                this.SetCapacity(newCapacity);
             }
 
-            this.array[this.tail++] = item;
+            this.array[this.tail] = item;
+            this.tail = (this.tail + 1) % this.array.Length;
             this.size++;
             this.version++;
         }
@@ -87,7 +100,8 @@ namespace GenericQueue
             }
 
             T output = this.array[this.head];
-            this.array[this.head++] = default;
+            this.array[this.head] = default;
+            this.head = (this.head + 1) % this.array.Length;
             this.size--;
             this.version++;
             return output;
@@ -96,7 +110,16 @@ namespace GenericQueue
         /// <summary>Removes all objects from the queue.</summary>
         public void Clear()
         {
-            Array.Clear(this.array, this.head, this.size);
+            if (this.head < this.tail)
+            {
+                Array.Clear(this.array, this.head, this.size);
+            }
+            else
+            {
+                Array.Clear(this.array, this.head, this.array.Length - this.head);
+                Array.Clear(this.array, 0, this.tail);
+            }
+
             this.head = 0;
             this.tail = 0;
             this.size = 0;
@@ -139,7 +162,21 @@ namespace GenericQueue
         public T[] ToArray()
         {
             var outArray = new T[this.size];
-            Array.Copy(this.array, this.head, outArray, 0, this.size);
+            if (this.size == 0)
+            {
+                return outArray;
+            }
+
+            if (this.head < this.tail)
+            {
+                Array.Copy(this.array, this.head, outArray, 0, this.size);
+            }
+            else
+            {
+                Array.Copy(this.array, this.head, outArray, 0, this.array.Length - this.head);
+                Array.Copy(this.array, 0, outArray, this.array.Length - this.head, this.tail);
+            }
+
             return outArray;
         }
 
@@ -164,21 +201,50 @@ namespace GenericQueue
             return new Iterator(this);
         }
 
-        /// <summary>Enumerates the elements     of a queue.</summary>
-        public struct Iterator : IEnumerator<T>
+        private void SetCapacity(int capacity)
+        {
+            var newArray = new T[capacity];
+            if (this.size > 0)
+            {
+                if (this.head < this.tail)
+                {
+                    Array.Copy(this.array, this.head, newArray, 0, this.size);
+                }
+                else
+                {
+                    Array.Copy(this.array, this.head, newArray, 0, this.array.Length - this.head);
+                    Array.Copy(this.array, 0, newArray, this.array.Length - this.head, this.tail);
+                }
+            }
+
+            this.array = newArray;
+            this.head = 0;
+            this.tail = (this.size == capacity) ? 0 : this.size;
+            this.version++;
+        }
+
+        private T GetElement(int index)
+        {
+            return this.array[(this.head + index) % this.array.Length];
+        }
+
+        /// <summary>Enumerates the elements of a queue.</summary>
+        public struct Iterator : IEnumerator<T>, IEnumerator
         {
             private readonly Queue<T> queue;
             private readonly int version;
             private int currentIndex;
+            private T currentElement;
 
             /// <summary>Initializes a new instance of the <see cref="Iterator"/> struct.</summary>
             /// <param name="queue">The queue.</param>
             /// <exception cref="ArgumentNullException">Thrown when queue is null.</exception>
-            public Iterator(Queue<T> queue)
+            internal Iterator(Queue<T> queue)
             {
                 this.queue = queue ?? throw new ArgumentNullException(nameof(queue));
-                this.currentIndex = this.queue.head - 1;
+                this.currentIndex = -1;
                 this.version = queue.version;
+                this.currentElement = default;
             }
 
             /// <summary>Gets the element at the current position of the enumerator.</summary>
@@ -188,12 +254,12 @@ namespace GenericQueue
             {
                 get
                 {
-                    if (this.currentIndex == this.queue.head - 1 || this.currentIndex == this.queue.tail + 1)
+                    if (this.currentIndex < 0)
                     {
                         throw new InvalidOperationException();
                     }
 
-                    return this.queue.array[this.currentIndex];
+                    return this.currentElement;
                 }
             }
 
@@ -204,7 +270,13 @@ namespace GenericQueue
             /// <summary>Resets currentIndex.</summary>
             public void Reset()
             {
-                this.currentIndex = this.queue.head - 1;
+                if (this.version != this.queue.version)
+                {
+                    throw new InvalidOperationException();
+                }
+
+                this.currentIndex = -1;
+                this.currentElement = default;
             }
 
             /// <summary>Advances the enumerator to the next element of the queue.</summary>
@@ -216,7 +288,17 @@ namespace GenericQueue
                     throw new InvalidOperationException("Queue has been changed.");
                 }
 
-                return ++this.currentIndex < this.queue.tail;
+                this.currentIndex++;
+                this.currentElement = this.queue.GetElement(this.currentIndex);
+
+                if (this.currentIndex == this.queue.Count)
+                {
+                    this.currentIndex = -1;
+                    this.currentElement = default;
+                    return false;
+                }
+
+                return true;
             }
 
             /// <summary>Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.</summary>

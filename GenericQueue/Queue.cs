@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace GenericQueue
 {
     /// <summary>Represents a first-in, first-out collection of objects.</summary>
     /// <typeparam name="T">Specifies the type of elements in the queue.</typeparam>
-    public class Queue<T>
+    public class Queue<T> : IEnumerable<T>, IEnumerable
     {
         private T[] array;
         private int head;
@@ -119,15 +120,18 @@ namespace GenericQueue
         /// <param name="item">The item.</param>
         /// <returns>
         ///   <c>true</c> if [contains] [the specified item]; otherwise, <c>false</c>.</returns>
-        /// <exception cref="System.ArgumentNullException">Thrown when item is null.</exception>
         public bool Contains(T item)
         {
-            if (item == null)
+            var equalityComparer = EqualityComparer<T>.Default;
+            foreach (var element in this)
             {
-                throw new ArgumentNullException(nameof(item));
+                if (equalityComparer.Equals(element, item))
+                {
+                    return true;
+                }
             }
 
-            return Array.IndexOf(this.array, item, this.head, this.size) >= 0;
+            return false;
         }
 
         /// <summary>Copies the queue elements to a new array.</summary>
@@ -140,14 +144,28 @@ namespace GenericQueue
         }
 
         /// <summary>Gets the enumerator.</summary>
-        /// <returns>Returns an enumerator that iterates through the queue.</returns>
+        /// <returns>An enumerator that can be used to iterate through the collection.</returns>
         public Iterator GetEnumerator()
         {
             return new Iterator(this);
         }
 
-        /// <summary>Enumerates the elements of a queue.</summary>
-        public struct Iterator
+        /// <summary>Returns an enumerator that iterates through a collection.</summary>
+        /// <returns>An <see cref="IEnumerator"/> object that can be used to iterate through the collection.</returns>
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return new Iterator(this);
+        }
+
+        /// <summary>Returns an enumerator that iterates through the collection.</summary>
+        /// <returns>An enumerator that can be used to iterate through the collection.</returns>
+        IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        {
+            return new Iterator(this);
+        }
+
+        /// <summary>Enumerates the elements     of a queue.</summary>
+        public struct Iterator : IEnumerator<T>
         {
             private readonly Queue<T> queue;
             private readonly int version;
@@ -179,6 +197,10 @@ namespace GenericQueue
                 }
             }
 
+            /// <summary>Gets the current.</summary>
+            /// <value>The current.</value>
+            object IEnumerator.Current => this.Current;
+
             /// <summary>Resets currentIndex.</summary>
             public void Reset()
             {
@@ -195,6 +217,11 @@ namespace GenericQueue
                 }
 
                 return ++this.currentIndex < this.queue.tail;
+            }
+
+            /// <summary>Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.</summary>
+            public void Dispose()
+            {
             }
         }
     }

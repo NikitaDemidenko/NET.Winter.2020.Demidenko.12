@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using GenericsDemo.Interfaces;
 
@@ -91,7 +92,7 @@ namespace GenericsDemo
         /// <param name="source">Source.</param>
         /// <returns>Returns new typed array.</returns>
         /// <exception cref="ArgumentNullException">Thrown when source is null.</exception>
-        public static IEnumerable<TResult> TypeOf<TResult>(this IEnumerable<object> source)
+        public static IEnumerable<TResult> TypeOf<TResult>(this IEnumerable source)
         {
             if (source == null)
             {
@@ -119,9 +120,9 @@ namespace GenericsDemo
                 throw new ArgumentNullException(nameof(source));
             }
 
-            var array = new List<T>(source);
+            var array = source.ToArray();
 
-            for (int i = array.Count - 1; i >= 0; i--)
+            for (int i = array.Length - 1; i >= 0; i--)
             {
                 yield return array[i];
             }

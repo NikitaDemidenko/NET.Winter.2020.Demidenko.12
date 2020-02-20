@@ -65,7 +65,7 @@ namespace GenericsDemo
         /// <param name="comparer">The comparer.</param>
         /// <returns>Returns new ordered collection.</returns>
         /// <exception cref="ArgumentNullException">Thrown when source or comparer is null.</exception>
-        public static IEnumerable<TSource> OrderAccordingTo<TSource>(this IEnumerable<TSource> source, Interfaces.IComparer<TSource> comparer)
+        public static IEnumerable<TSource> OrderAccordingTo<TSource>(this IEnumerable<TSource> source, System.Collections.Generic.IComparer<TSource> comparer)
         {
             if (source == null)
             {
@@ -77,18 +77,9 @@ namespace GenericsDemo
                 throw new ArgumentNullException(nameof(comparer));
             }
 
-            var array = new List<TSource>(source).ToArray();
-            for (int i = 0; i < array.Length - 1; i++)
-            {
-                for (int j = i + 1; j < array.Length; j++)
-                {
-                    if (comparer.Compare(array[i], array[j]) > 0)
-                    {
-                        Swap(ref array[i], ref array[j]);
-                    }
-                }
-            }
+            var array = source.ToArray();
 
+            Array.Sort(array, comparer);
             foreach (var item in array)
             {
                 yield return item;
@@ -134,6 +125,29 @@ namespace GenericsDemo
             {
                 yield return array[i];
             }
+        }
+
+        private static T[] ToArray<T>(this IEnumerable<T> source)
+        {
+            if (source is null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
+            int count = 0;
+            foreach (var item in source)
+            {
+                count++;
+            }
+
+            var array = new T[count];
+            int i = 0;
+            foreach (var item in source)
+            {
+                array[i++] = item;
+            }
+
+            return array;
         }
 
         private static void Swap<T>(ref T left, ref T right)

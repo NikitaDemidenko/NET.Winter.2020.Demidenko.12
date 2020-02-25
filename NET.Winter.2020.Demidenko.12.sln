@@ -11,7 +11,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "qwety", "qwety\qwety.csproj
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GenericQueue", "GenericQueue\GenericQueue.csproj", "{BCD5AAA3-EA69-4A5B-9CE7-173178E9BD9A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenericQueue.Tests", "GenericQueue.Tests\GenericQueue.Tests.csproj", "{C81DCC59-2227-4246-8E0A-B2A6B5425EAA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GenericQueue.Tests", "GenericQueue.Tests\GenericQueue.Tests.csproj", "{C81DCC59-2227-4246-8E0A-B2A6B5425EAA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GenericsDemo", "GenericsDemo\GenericsDemo.csproj", "{3CBC2760-E14D-4C8E-8763-6AF5EFC3B0D0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GenericDemo.Tests", "GenericDemo.Tests\GenericDemo.Tests.csproj", "{DE91E92B-900A-412D-A404-84878B89FE2C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +43,14 @@ Global
 		{C81DCC59-2227-4246-8E0A-B2A6B5425EAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C81DCC59-2227-4246-8E0A-B2A6B5425EAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C81DCC59-2227-4246-8E0A-B2A6B5425EAA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3CBC2760-E14D-4C8E-8763-6AF5EFC3B0D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3CBC2760-E14D-4C8E-8763-6AF5EFC3B0D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3CBC2760-E14D-4C8E-8763-6AF5EFC3B0D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3CBC2760-E14D-4C8E-8763-6AF5EFC3B0D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DE91E92B-900A-412D-A404-84878B89FE2C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DE91E92B-900A-412D-A404-84878B89FE2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE91E92B-900A-412D-A404-84878B89FE2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DE91E92B-900A-412D-A404-84878B89FE2C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
